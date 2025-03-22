@@ -1,10 +1,20 @@
 import { ThinkingTool, ThinkingStyle } from './types.js';
+import { BranchThinkingTool } from '../tools/branch-thinking/branchThinkingTool.js';
+import { TemplateThinkingTool } from '../tools/template-thinking/templateThinkingTool.js';
+import { VerificationThinkingTool } from '../tools/verification-thinking/verificationThinkingTool.js';
 
 /**
  * Registry for all thinking tools
  */
 export class ToolRegistry {
   private tools: Map<string, ThinkingTool> = new Map();
+  
+  constructor() {
+    // Register all tools
+    this.registerTool(new BranchThinkingTool());
+    this.registerTool(new TemplateThinkingTool());
+    this.registerTool(new VerificationThinkingTool());
+  }
   
   registerTool(tool: ThinkingTool): void {
     this.tools.set(tool.name, tool);

@@ -154,6 +154,165 @@ export class TemplateManager {
       createdAt: new Date(),
       usageCount: 0,
       isBuiltIn: true
+    },
+    {
+      id: 'planning-template',
+      name: 'Implementation Planning',
+      category: 'planning',
+      description: 'Systematic approach to plan the implementation of a feature or project',
+      steps: [
+        {
+          id: 'step-1',
+          content: 'Define objectives and success criteria',
+          order: 1,
+          isComplete: false
+        },
+        {
+          id: 'step-2',
+          content: 'Identify required resources and dependencies',
+          order: 2,
+          isComplete: false
+        },
+        {
+          id: 'step-3',
+          content: 'Break down into actionable tasks',
+          order: 3,
+          isComplete: false
+        },
+        {
+          id: 'step-4',
+          content: 'Estimate effort and timeline for each task',
+          order: 4,
+          isComplete: false
+        },
+        {
+          id: 'step-5',
+          content: 'Identify potential risks and mitigation strategies',
+          order: 5,
+          isComplete: false
+        },
+        {
+          id: 'step-6',
+          content: 'Define testing and validation approach',
+          order: 6,
+          isComplete: false
+        },
+        {
+          id: 'step-7',
+          content: 'Create implementation roadmap with milestones',
+          order: 7,
+          isComplete: false
+        }
+      ],
+      createdAt: new Date(),
+      usageCount: 0,
+      isBuiltIn: true
+    },
+    {
+      id: 'research-template',
+      name: 'Research Methodology',
+      category: 'research',
+      description: 'Structured approach for conducting research on a topic',
+      steps: [
+        {
+          id: 'step-1',
+          content: 'Define research question or objective',
+          order: 1,
+          isComplete: false
+        },
+        {
+          id: 'step-2',
+          content: 'Collect preliminary information and background',
+          order: 2,
+          isComplete: false
+        },
+        {
+          id: 'step-3',
+          content: 'Identify key sources and resources',
+          order: 3,
+          isComplete: false
+        },
+        {
+          id: 'step-4',
+          content: 'Analyze and synthesize findings',
+          order: 4,
+          isComplete: false
+        },
+        {
+          id: 'step-5',
+          content: 'Identify gaps or areas requiring deeper investigation',
+          order: 5,
+          isComplete: false
+        },
+        {
+          id: 'step-6',
+          content: 'Draw conclusions based on evidence',
+          order: 6,
+          isComplete: false
+        },
+        {
+          id: 'step-7',
+          content: 'Summarize findings and suggest next steps',
+          order: 7,
+          isComplete: false
+        }
+      ],
+      createdAt: new Date(),
+      usageCount: 0,
+      isBuiltIn: true
+    },
+    {
+      id: 'verification-template',
+      name: 'Systematic Verification',
+      category: 'verification',
+      description: 'Template for methodically verifying a claim or hypothesis',
+      steps: [
+        {
+          id: 'step-1',
+          content: 'State the claim or hypothesis precisely',
+          order: 1,
+          isComplete: false
+        },
+        {
+          id: 'step-2',
+          content: 'Break down the claim into testable components',
+          order: 2,
+          isComplete: false
+        },
+        {
+          id: 'step-3',
+          content: 'Identify necessary evidence to confirm or refute',
+          order: 3,
+          isComplete: false
+        },
+        {
+          id: 'step-4',
+          content: 'Test each component systematically',
+          order: 4,
+          isComplete: false
+        },
+        {
+          id: 'step-5',
+          content: 'Look for counter-examples or edge cases',
+          order: 5,
+          isComplete: false
+        },
+        {
+          id: 'step-6',
+          content: 'Assess overall validity with confidence level',
+          order: 6,
+          isComplete: false
+        },
+        {
+          id: 'step-7',
+          content: 'Document verification process and results',
+          order: 7,
+          isComplete: false
+        }
+      ],
+      createdAt: new Date(),
+      usageCount: 0,
+      isBuiltIn: true
     }
   ];
 
