@@ -1,5 +1,4 @@
 import { ThinkingTool, ThinkingStyle } from './types.js';
-import { BranchThinkingTool } from '../tools/branch-thinking/branchThinkingTool.js';
 import { TemplateThinkingTool } from '../tools/template-thinking/templateThinkingTool.js';
 import { VerificationThinkingTool } from '../tools/verification-thinking/verificationThinkingTool.js';
 
@@ -11,7 +10,6 @@ export class ToolRegistry {
   
   constructor() {
     // Register all tools
-    this.registerTool(new BranchThinkingTool());
     this.registerTool(new TemplateThinkingTool());
     this.registerTool(new VerificationThinkingTool());
   }
@@ -40,14 +38,6 @@ export class ToolRegistry {
       return this.getTool(inputData.tool);
     }
     
-    // Check for branch thinking input patterns
-    if (
-      (inputData.content && inputData.type) || 
-      (inputData.command && ['list', 'focus', 'history', 'minimize', 'expand'].includes(inputData.command.type))
-    ) {
-      return this.getTool('branch-thinking');
-    }
-    
     // Check for template thinking input patterns
     if (
       inputData.templateId || 
@@ -66,7 +56,7 @@ export class ToolRegistry {
       return this.getTool('verification-thinking');
     }
     
-    // Default to branch thinking
-    return this.getTool('branch-thinking');
+    // Default to template thinking
+    return this.getTool('template-thinking');
   }
 }

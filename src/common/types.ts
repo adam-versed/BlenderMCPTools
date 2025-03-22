@@ -26,9 +26,8 @@ export interface ThinkingResponse {
 }
 
 // Thinking style definitions
-export type ThinkingStyle = 'branch' | 'template' | 'verification';
+export type ThinkingStyle = 'template' | 'verification';
 
 // Re-export types from specific thinking tools
-export * from '../tools/branch-thinking/types.js';
 export * from '../tools/template-thinking/types.js';
 export * from '../tools/verification-thinking/types.js';

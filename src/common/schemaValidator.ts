@@ -2,79 +2,8 @@
  * Schema validation utilities for the structured thinking tools
  */
 
-import { BranchingThoughtInput } from '../tools/branch-thinking/types.js';
 import { TemplateThinkingInput } from '../tools/template-thinking/types.js';
 import { VerificationThinkingInput } from '../tools/verification-thinking/types.js';
-
-/**
- * Validate branch thinking input
- */
-export function validateBranchThinkingInput(input: unknown): BranchingThoughtInput {
-  const data = input as any;
-  
-  // For commands, we only need to validate the command type
-  if (data.command) {
-    if (!data.command.type || typeof data.command.type !== 'string') {
-      throw new Error('Command type is required and must be a string');
-    }
-    
-    const validCommands = ['list', 'focus', 'history', 'minimize', 'expand'];
-    if (!validCommands.includes(data.command.type)) {
-      throw new Error(`Invalid command type: ${data.command.type}. Valid types are: ${validCommands.join(', ')}`);
-    }
-    
-    // For 'focus' and 'history', we need a branchId
-    if ((data.command.type === 'focus' || data.command.type === 'history') && !data.command.branchId) {
-      throw new Error(`Command ${data.command.type} requires a branchId`);
-    }
-    
-    return data as BranchingThoughtInput;
-  }
-  
-  // For regular thoughts, we need content and type
-  if (!data.content || typeof data.content !== 'string') {
-    throw new Error('Content is required and must be a string');
-  }
-  
-  if (!data.type || typeof data.type !== 'string') {
-    throw new Error('Type is required and must be a string');
-  }
-  
-  // Validate optional fields
-  if (data.confidence !== undefined && (typeof data.confidence !== 'number' || data.confidence < 0 || data.confidence > 1)) {
-    throw new Error('Confidence must be a number between 0 and 1');
-  }
-  
-  if (data.keyPoints !== undefined && !Array.isArray(data.keyPoints)) {
-    throw new Error('keyPoints must be an array');
-  }
-  
-  if (data.crossRefs !== undefined) {
-    if (!Array.isArray(data.crossRefs)) {
-      throw new Error('crossRefs must be an array');
-    }
-    
-    for (const ref of data.crossRefs) {
-      if (!ref.toBranch || typeof ref.toBranch !== 'string') {
-        throw new Error('Each crossRef must have a toBranch property that is a string');
-      }
-      
-      if (!ref.type || typeof ref.type !== 'string') {
-        throw new Error('Each crossRef must have a type property that is a string');
-      }
-      
-      if (!ref.reason || typeof ref.reason !== 'string') {
-        throw new Error('Each crossRef must have a reason property that is a string');
-      }
-      
-      if (typeof ref.strength !== 'number' || ref.strength < 0 || ref.strength > 1) {
-        throw new Error('Each crossRef must have a strength property that is a number between 0 and 1');
-      }
-    }
-  }
-  
-  return data as BranchingThoughtInput;
-}
 
 /**
  * Validate template thinking input
@@ -244,8 +173,6 @@ export function validateInput(input: unknown, toolName?: string): unknown {
   // If tool name is specified, use that
   if (toolName) {
     switch (toolName) {
-      case 'branch-thinking':
-        return validateBranchThinkingInput(input);
       case 'template-thinking':
         return validateTemplateThinkingInput(input);
       case 'verification-thinking':
@@ -257,14 +184,6 @@ export function validateInput(input: unknown, toolName?: string): unknown {
   
   // Otherwise, try to infer from the input structure
   const data = input as any;
-  
-  // Check for branch thinking patterns
-  if (
-    (data.content && data.type) || 
-    (data.command && ['list', 'focus', 'history', 'minimize', 'expand'].includes(data.command.type))
-  ) {
-    return validateBranchThinkingInput(input);
-  }
   
   // Check for template thinking patterns
   if (

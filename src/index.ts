@@ -103,54 +103,6 @@ class StructuredThinkingServer {
       
       // Add tool-specific schemas
       switch (tool.name) {
-        case 'branch-thinking':
-          inputSchema = {
-            type: "object",
-            properties: {
-              content: { type: "string", description: "The thought content" },
-              type: { type: "string", description: "Type of thought (e.g., 'analysis', 'hypothesis', 'observation')" },
-              branchId: { type: "string", description: "Optional: ID of the branch" },
-              parentBranchId: { type: "string", description: "Optional: ID of the parent branch" },
-              confidence: { type: "number", description: "Optional: Confidence score (0-1)" },
-              keyPoints: { 
-                type: "array", 
-                items: { type: "string" },
-                description: "Optional: Key points identified in the thought"
-              },
-              crossRefs: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    toBranch: { type: "string" },
-                    type: { type: "string" },
-                    reason: { type: "string" },
-                    strength: { type: "number" }
-                  }
-                },
-                description: "Optional: Cross-references to other branches"
-              },
-              projectStructure: { type: "string", description: "Optional: Project structure in markdown format" },
-              command: {
-                type: "object",
-                properties: {
-                  type: { 
-                    type: "string",
-                    enum: ["list", "focus", "history", "minimize", "expand"],
-                    description: "Command type"
-                  },
-                  branchId: { type: "string", description: "Branch ID for commands that require it" }
-                },
-                required: ["type"]
-              }
-            },
-            anyOf: [
-              { required: ["content", "type"] },
-              { required: ["command"] }
-            ]
-          };
-          break;
-          
         case 'template-thinking':
           inputSchema = {
             type: "object",
