@@ -2,7 +2,6 @@
 
 // Base types for all thinking tools
 export interface ThinkingContext {
-  projectStructure?: string;
   outputFormat: ChatOutputFormatting;
 }
 

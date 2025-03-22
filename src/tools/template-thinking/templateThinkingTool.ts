@@ -32,11 +32,6 @@ The system includes templates for:
       
       const templateInput = input as TemplateThinkingInput;
       
-      // Add project structure from context if not already in the input
-      if (context.projectStructure && !templateInput.projectStructure) {
-        templateInput.projectStructure = context.projectStructure;
-      }
-      
       // Handle creating a new template
       if (templateInput.createTemplate) {
         const { name, category, description, steps } = templateInput.createTemplate;
@@ -52,10 +47,7 @@ The system includes templates for:
       
       // Start a new session if requested
       if (templateInput.templateId && !templateInput.sessionId) {
-        const session = this.templateManager.createSession(
-          templateInput.templateId, 
-          templateInput.projectStructure
-        );
+        const session = this.templateManager.createSession(templateInput.templateId);
         
         const formattedOutput = this.templateManager.formatForIDEChat(session, context);
         console.error(formattedOutput);

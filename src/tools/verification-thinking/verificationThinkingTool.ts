@@ -34,17 +34,9 @@ The system supports verification of:
       
       const verificationInput = input as VerificationThinkingInput;
       
-      // Add project structure from context if not already in the input
-      if (context.projectStructure && !verificationInput.projectStructure) {
-        verificationInput.projectStructure = context.projectStructure;
-      }
-      
       // Start a new chain if subject is provided and no chainId
       if (verificationInput.subject && !verificationInput.chainId) {
-        const chain = this.verificationManager.createChain(
-          verificationInput.subject,
-          verificationInput.projectStructure
-        );
+        const chain = this.verificationManager.createChain(verificationInput.subject);
         
         const formattedOutput = this.verificationManager.formatForIDEChat(chain, context);
         console.error(formattedOutput);

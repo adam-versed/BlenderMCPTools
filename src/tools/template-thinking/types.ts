@@ -35,7 +35,6 @@ export interface TemplateSession {
   startTime: Date;
   endTime?: Date;
   context?: string;
-  projectStructure?: string;
 }
 
 export interface TemplateThinkingInput {
@@ -44,7 +43,6 @@ export interface TemplateThinkingInput {
   sessionId?: string;
   content?: string;
   stepId?: string;
-  projectStructure?: string;
   createTemplate?: {
     name: string;
     category: TemplateCategory;

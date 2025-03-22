@@ -20,8 +20,7 @@ class StructuredThinkingServer {
     outputFormat: {
       isMinimized: false,
       indentLevel: 0
-    },
-    projectStructure: undefined
+    }
   };
 
   /**
@@ -43,11 +42,6 @@ class StructuredThinkingServer {
           }],
           isError: true
         };
-      }
-      
-      // For shared context tools, check if projectStructure is in the input
-      if ((input as any).projectStructure && !this.context.projectStructure) {
-        this.context.projectStructure = (input as any).projectStructure;
       }
       
       // Get the appropriate tool
@@ -111,7 +105,6 @@ class StructuredThinkingServer {
               sessionId: { type: "string", description: "ID of an existing session" },
               stepId: { type: "string", description: "ID of the step to update" },
               content: { type: "string", description: "Content for the step" },
-              projectStructure: { type: "string", description: "Optional: Project structure in markdown format" },
               createTemplate: {
                 type: "object",
                 properties: {
@@ -161,7 +154,6 @@ class StructuredThinkingServer {
               verification: { type: "string", description: "Verification text" },
               evidence: { type: "string", description: "Optional: Evidence supporting the verification" },
               counterExample: { type: "string", description: "Optional: Counter-example to the claim" },
-              projectStructure: { type: "string", description: "Optional: Project structure in markdown format" },
               command: {
                 type: "object",
                 properties: {

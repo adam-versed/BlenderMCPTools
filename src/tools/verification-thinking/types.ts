@@ -32,7 +32,6 @@ export interface VerificationChain {
   overallStatus: VerificationStatus;
   startTime: Date;
   endTime?: Date;
-  projectStructure?: string;
 }
 
 export interface VerificationThinkingInput {
@@ -44,7 +43,6 @@ export interface VerificationThinkingInput {
   verification?: string;
   evidence?: string;
   counterExample?: string;
-  projectStructure?: string;
   command?: {
     type: string;
     chainId?: string;

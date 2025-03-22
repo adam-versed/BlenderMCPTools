@@ -364,7 +364,7 @@ export class TemplateManager {
     return template;
   }
 
-  createSession(templateId: string, projectStructure?: string): TemplateSession {
+  createSession(templateId: string): TemplateSession {
     const template = this.getTemplateById(templateId);
     if (!template) {
       throw new Error(`Template ${templateId} not found`);
@@ -380,8 +380,7 @@ export class TemplateManager {
       templateId,
       currentStepIndex: 0,
       steps: JSON.parse(JSON.stringify(template.steps)), // Deep copy the steps
-      startTime: new Date(),
-      projectStructure
+      startTime: new Date()
     };
     
     this.sessions.set(sessionId, session);
@@ -454,11 +453,6 @@ export class TemplateManager {
       
       output += '\n';
     });
-    
-    // If we have project structure, use it to provide context
-    if (session.projectStructure) {
-      output += `\nProject context:\n${session.projectStructure}\n`;
-    }
     
     return output;
   }

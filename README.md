@@ -61,30 +61,6 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-## Using Project Structure
-
-All tools support project structure context. You can provide project structure information in markdown format:
-
-```javascript
-// Example using project structure with template thinking
-claude.templateThinking({
-  templateId: "analysis-template",
-  projectStructure: `
-# Project Structure
-- src/
-  - components/
-    - Button.tsx
-    - Form.tsx
-  - utils/
-    - api.ts
-    - helpers.ts
-- tests/
-  - unit/
-  - integration/
-`
-});
-```
-
 ## Usage Tips
 
 To encourage Claude to use these tools, add to your Claude Profile Settings (or system prompt):
@@ -163,4 +139,4 @@ claude.verificationThinking({
 
 ## Credits
 
-Based on the sequential-thinking tool by the Model Context Protocol. Enhanced with structured thinking tools, IDE chat output formatting, and project structure support.
+Based on the sequential-thinking tool by the Model Context Protocol. Enhanced with structured thinking tools and IDE chat output formatting.

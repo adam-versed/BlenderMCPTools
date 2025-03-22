@@ -17,7 +17,7 @@ export class VerificationManager {
     return `${prefix}-${timestamp}-${random}`;
   }
 
-  createChain(subject: string, projectStructure?: string): VerificationChain {
+  createChain(subject: string): VerificationChain {
     const chainId = this.generateId('chain');
     
     const chain: VerificationChain = {
@@ -25,8 +25,7 @@ export class VerificationManager {
       subject,
       steps: [],
       overallStatus: 'pending',
-      startTime: new Date(),
-      projectStructure
+      startTime: new Date()
     };
     
     this.chains.set(chainId, chain);
@@ -185,11 +184,6 @@ export class VerificationManager {
         
         output += '\n';
       });
-    }
-    
-    // If we have project structure, use it to provide context
-    if (chain.projectStructure) {
-      output += `\nProject context:\n${chain.projectStructure}\n`;
     }
     
     return output;
