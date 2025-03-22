@@ -6,9 +6,9 @@ import {
   CrossReference, 
   InsightType, 
   CrossRefType, 
-  BranchingThoughtInput
-} from './types.js';
-import { ChatOutputFormatting, ThinkingContext } from '../../common/types.js';
+  BranchingThoughtInput,
+  ThinkingContext
+} from '../../common/types.js';
 
 export class BranchManager {
   private branches: Map<string, ThoughtBranch> = new Map();
