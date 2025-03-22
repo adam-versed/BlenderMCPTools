@@ -1,0 +1,26 @@
+{
+  "name": "@modelcontextprotocol/server-structured-thinking",
+  "version": "0.1.0",
+  "description": "Unified MCP server for multiple structured thinking tools including branch thinking, template thinking, and verification thinking",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "mcp-server-structured-thinking": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "prepare": "npm run build",
+    "watch": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "0.5.0",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5.3.3"
+  }
+}
