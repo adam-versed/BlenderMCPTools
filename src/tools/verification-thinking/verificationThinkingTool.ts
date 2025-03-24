@@ -23,7 +23,7 @@ The system supports verification of:
 
   private verificationManager = new VerificationManager();
 
-  processThought(input: unknown, context: ThinkingContext): ThinkingResponse {
+  async processThought(input: unknown, context: ThinkingContext): Promise<ThinkingResponse> {
     try {
       const inputData = input as any;
       
@@ -36,7 +36,7 @@ The system supports verification of:
       
       // Start a new chain if subject is provided and no chainId
       if (verificationInput.subject && !verificationInput.chainId) {
-        const chain = this.verificationManager.createChain(verificationInput.subject);
+        const chain = await this.verificationManager.createChain(verificationInput.subject);
         
         const formattedOutput = this.verificationManager.formatForIDEChat(chain, context);
         console.error(formattedOutput);
@@ -53,7 +53,7 @@ The system supports verification of:
       if (verificationInput.chainId && verificationInput.claim && verificationInput.type) {
         const verification = verificationInput.verification || 'Pending verification...';
         
-        const step = this.verificationManager.addVerificationStep(
+        const step = await this.verificationManager.addVerificationStep(
           verificationInput.chainId,
           verificationInput.type as VerificationType,
           verificationInput.claim,
@@ -78,7 +78,7 @@ The system supports verification of:
       
       // Update a verification step
       if (verificationInput.chainId && verificationInput.stepId && verificationInput.verification) {
-        const step = this.verificationManager.updateVerificationStep(
+        const step = await this.verificationManager.updateVerificationStep(
           verificationInput.chainId,
           verificationInput.stepId,
           verificationInput.verification,
@@ -130,7 +130,7 @@ The system supports verification of:
     return 'Error: Invalid input for formatForIDEChat';
   }
 
-  handleCommand(command: { type: string; chainId?: string; stepId?: string }, context: ThinkingContext): ThinkingResponse {
+  async handleCommand(command: { type: string; chainId?: string; stepId?: string }, context: ThinkingContext): Promise<ThinkingResponse> {
     try {
       switch (command.type) {
         case 'list-chains': {

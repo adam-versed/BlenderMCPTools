@@ -21,7 +21,7 @@ The system includes templates for:
 
   private templateManager = new TemplateManager();
 
-  processThought(input: unknown, context: ThinkingContext): ThinkingResponse {
+  async processThought(input: unknown, context: ThinkingContext): Promise<ThinkingResponse> {
     try {
       const inputData = input as any;
       
@@ -35,7 +35,7 @@ The system includes templates for:
       // Handle creating a new template
       if (templateInput.createTemplate) {
         const { name, category, description, steps } = templateInput.createTemplate;
-        const template = this.templateManager.createTemplate(name, category, description, steps);
+        const template = await this.templateManager.createTemplate(name, category, description, steps);
         
         return {
           content: [{
@@ -47,7 +47,7 @@ The system includes templates for:
       
       // Start a new session if requested
       if (templateInput.templateId && !templateInput.sessionId) {
-        const session = this.templateManager.createSession(templateInput.templateId);
+        const session = await this.templateManager.createSession(templateInput.templateId);
         
         const formattedOutput = this.templateManager.formatForIDEChat(session, context);
         console.error(formattedOutput);
@@ -62,7 +62,7 @@ The system includes templates for:
       
       // Update a step if content and stepId are provided
       if (templateInput.sessionId && templateInput.stepId && templateInput.content) {
-        const step = this.templateManager.updateStep(
+        const step = await this.templateManager.updateStep(
           templateInput.sessionId,
           templateInput.stepId,
           templateInput.content
@@ -110,7 +110,7 @@ The system includes templates for:
     return 'Error: Invalid input for formatForIDEChat';
   }
 
-  handleCommand(command: { type: string; templateId?: string; sessionId?: string }, context: ThinkingContext): ThinkingResponse {
+  async handleCommand(command: { type: string; templateId?: string; sessionId?: string }, context: ThinkingContext): Promise<ThinkingResponse> {
     try {
       switch (command.type) {
         case 'list-templates': {

@@ -6,11 +6,16 @@ import {
   TemplateSession
 } from './types.js';
 import { ThinkingContext } from '../../common/types.js';
+import { PersistenceManager, TemplateData } from '../../common/persistence/index.js';
 
 export class TemplateManager {
   private templates: Map<string, ThinkingTemplate> = new Map();
   private sessions: Map<string, TemplateSession> = new Map();
   private currentSessionId: string | null = null;
+  private persistence: PersistenceManager<TemplateData>;
+  private stepCounter = 0;
+  private sessionCounter = 0;
+  private templateCounter = 0;
 
   // Built-in templates
   private readonly builtInTemplates: ThinkingTemplate[] = [
@@ -317,16 +322,115 @@ export class TemplateManager {
   ];
 
   constructor() {
-    // Initialize with built-in templates
-    this.builtInTemplates.forEach(template => {
-      this.templates.set(template.id, template);
+    // Initialize persistence manager with default data
+    this.persistence = new PersistenceManager<TemplateData>('templates', {
+      templates: {},
+      sessionCounter: 0,
+      templateCounter: 0,
+      stepCounter: 0
     });
+    
+    // Initialize asynchronously - we'll load data when needed
+    this.initializeAsync();
+  }
+  
+  /**
+   * Initializes persistence and data async
+   */
+  private async initializeAsync(): Promise<void> {
+    try {
+      await this.persistence.initialize();
+      await this.loadData();
+    } catch (error) {
+      console.error(`Error initializing template manager: ${error}`);
+      
+      // If persistence fails, initialize with built-in templates
+      this.builtInTemplates.forEach(template => {
+        this.templates.set(template.id, template);
+      });
+    }
+  }
+  
+  /**
+   * Load data from persistence
+   */
+  private async loadData(): Promise<void> {
+    const data = await this.persistence.getData();
+    
+    // Initialize counters
+    this.sessionCounter = data.sessionCounter;
+    this.templateCounter = data.templateCounter;
+    this.stepCounter = data.stepCounter;
+    
+    // Load templates
+    this.templates.clear();
+    
+    // First add built-in templates
+    this.builtInTemplates.forEach(template => {
+      this.templates.set(template.id, {
+        ...template,
+        usageCount: 0,
+        lastUsed: undefined
+      });
+    });
+    
+    // Then load custom templates (which might override built-ins)
+    for (const [id, template] of Object.entries(data.templates)) {
+      // Convert ISO date strings back to Date objects
+      const createdAt = new Date(template.createdAt);
+      const lastUsed = template.lastUsed ? new Date(template.lastUsed) : undefined;
+      
+      this.templates.set(id, {
+        ...template,
+        createdAt,
+        lastUsed
+      });
+    }
+    
+    console.error(`Loaded ${this.templates.size} templates`);
+  }
+  
+  /**
+   * Save data to persistence
+   */
+  private async saveData(): Promise<void> {
+    // Extract custom templates to save
+    const customTemplates: Record<string, any> = {};
+    for (const [id, template] of this.templates.entries()) {
+      // Only save non-built-in templates, plus usage data for built-ins
+      if (!template.isBuiltIn || template.usageCount > 0) {
+        customTemplates[id] = template;
+      }
+    }
+    
+    const data: TemplateData = {
+      templates: customTemplates,
+      sessionCounter: this.sessionCounter,
+      templateCounter: this.templateCounter,
+      stepCounter: this.stepCounter
+    };
+    
+    await this.persistence.save(data);
   }
 
   generateId(prefix: string): string {
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000);
-    return `${prefix}-${timestamp}-${random}`;
+    let counter = 0;
+    
+    switch (prefix) {
+      case 'step':
+        counter = ++this.stepCounter;
+        break;
+      case 'session':
+        counter = ++this.sessionCounter;
+        break;
+      case 'template':
+        counter = ++this.templateCounter;
+        break;
+      default:
+        counter = Date.now();
+    }
+    
+    return `${prefix}-${counter}`;
   }
 
   getTemplateById(templateId: string): ThinkingTemplate | undefined {
@@ -341,7 +445,7 @@ export class TemplateManager {
     return this.getAllTemplates().filter(t => t.category === category);
   }
 
-  createTemplate(name: string, category: TemplateCategory, description: string, steps: {content: string, order: number}[]): ThinkingTemplate {
+  async createTemplate(name: string, category: TemplateCategory, description: string, steps: {content: string, order: number}[]): Promise<ThinkingTemplate> {
     const templateId = this.generateId('template');
     
     const template: ThinkingTemplate = {
@@ -361,10 +465,14 @@ export class TemplateManager {
     };
     
     this.templates.set(templateId, template);
+    
+    // Save the updated data
+    await this.saveData();
+    
     return template;
   }
 
-  createSession(templateId: string): TemplateSession {
+  async createSession(templateId: string): Promise<TemplateSession> {
     const template = this.getTemplateById(templateId);
     if (!template) {
       throw new Error(`Template ${templateId} not found`);
@@ -386,6 +494,9 @@ export class TemplateManager {
     this.sessions.set(sessionId, session);
     this.currentSessionId = sessionId;
     
+    // Save the updated data
+    await this.saveData();
+    
     return session;
   }
 
@@ -397,7 +508,7 @@ export class TemplateManager {
     return this.currentSessionId ? this.sessions.get(this.currentSessionId) : undefined;
   }
 
-  updateStep(sessionId: string, stepId: string, content: string): ThinkingStep {
+  async updateStep(sessionId: string, stepId: string, content: string): Promise<ThinkingStep> {
     const session = this.getSession(sessionId);
     if (!session) {
       throw new Error(`Session ${sessionId} not found`);
@@ -419,6 +530,9 @@ export class TemplateManager {
       // If we completed the last step, mark the session as complete
       session.endTime = new Date();
     }
+    
+    // Save the updated data
+    await this.saveData();
     
     return step;
   }

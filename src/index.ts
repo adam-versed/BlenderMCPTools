@@ -8,7 +8,7 @@ import {
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import { ToolRegistry } from './common/toolRegistry.js';
-import { ThinkingContext } from './common/types.js';
+import { ThinkingContext, ThinkingResponse } from './common/types.js';
 import { validateInput } from './common/schemaValidator.js';
 
 /**
@@ -26,7 +26,7 @@ class StructuredThinkingServer {
   /**
    * Process a tool request
    */
-  processToolRequest(toolName: string, input: unknown): { content: Array<{ type: string; text: string }>; isError?: boolean } {
+  async processToolRequest(toolName: string, input: unknown): Promise<ThinkingResponse> {
     try {
       // Validate the input
       try {
@@ -66,7 +66,7 @@ class StructuredThinkingServer {
       }
       
       // Process the thought with the selected tool
-      return tool.processThought(input, this.context);
+      return await tool.processThought(input, this.context);
     } catch (error) {
       return {
         content: [{
@@ -203,7 +203,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 // Handle MCP tool call requests
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  return thinkingServer.processToolRequest(request.params.name, request.params.arguments);
+  return await thinkingServer.processToolRequest(request.params.name, request.params.arguments);
 });
 
 // Start the server

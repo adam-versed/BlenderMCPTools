@@ -6,18 +6,103 @@ import {
   VerificationChain
 } from './types.js';
 import { ThinkingContext } from '../../common/types.js';
+import { PersistenceManager, VerificationData } from '../../common/persistence/index.js';
 
 export class VerificationManager {
   private chains: Map<string, VerificationChain> = new Map();
   private currentChainId: string | null = null;
+  private persistence: PersistenceManager<VerificationData>;
+  private stepCounter = 0;
+  private chainCounter = 0;
 
-  generateId(prefix: string): string {
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000);
-    return `${prefix}-${timestamp}-${random}`;
+  constructor() {
+    // Initialize persistence manager with default data
+    this.persistence = new PersistenceManager<VerificationData>('verification', {
+      chains: {},
+      chainCounter: 0,
+      stepCounter: 0
+    });
+    
+    // Initialize asynchronously - we'll load data when needed
+    this.initializeAsync();
+  }
+  
+  /**
+   * Initializes persistence and data async
+   */
+  private async initializeAsync(): Promise<void> {
+    try {
+      await this.persistence.initialize();
+      await this.loadData();
+    } catch (error) {
+      console.error(`Error initializing verification manager: ${error}`);
+    }
+  }
+  
+  /**
+   * Load data from persistence
+   */
+  private async loadData(): Promise<void> {
+    const data = await this.persistence.getData();
+    
+    // Initialize counters
+    this.chainCounter = data.chainCounter;
+    this.stepCounter = data.stepCounter;
+    
+    // Load chains
+    this.chains.clear();
+    
+    for (const [id, chain] of Object.entries(data.chains)) {
+      // Convert ISO date strings back to Date objects
+      const startTime = new Date(chain.startTime);
+      const endTime = chain.endTime ? new Date(chain.endTime) : undefined;
+      
+      this.chains.set(id, {
+        ...chain,
+        startTime,
+        endTime
+      });
+    }
+    
+    console.error(`Loaded ${this.chains.size} verification chains`);
+  }
+  
+  /**
+   * Save data to persistence
+   */
+  private async saveData(): Promise<void> {
+    const chainData: Record<string, any> = {};
+    for (const [id, chain] of this.chains.entries()) {
+      chainData[id] = chain;
+    }
+    
+    const data: VerificationData = {
+      chains: chainData,
+      chainCounter: this.chainCounter,
+      stepCounter: this.stepCounter
+    };
+    
+    await this.persistence.save(data);
   }
 
-  createChain(subject: string): VerificationChain {
+  generateId(prefix: string): string {
+    let counter = 0;
+    
+    switch (prefix) {
+      case 'step':
+        counter = ++this.stepCounter;
+        break;
+      case 'chain':
+        counter = ++this.chainCounter;
+        break;
+      default:
+        counter = Date.now();
+    }
+    
+    return `${prefix}-${counter}`;
+  }
+
+  async createChain(subject: string): Promise<VerificationChain> {
     const chainId = this.generateId('chain');
     
     const chain: VerificationChain = {
@@ -30,6 +115,9 @@ export class VerificationManager {
     
     this.chains.set(chainId, chain);
     this.currentChainId = chainId;
+    
+    // Save the updated data
+    await this.saveData();
     
     return chain;
   }
@@ -46,7 +134,7 @@ export class VerificationManager {
     return Array.from(this.chains.values());
   }
 
-  addVerificationStep(
+  async addVerificationStep(
     chainId: string, 
     type: VerificationType, 
     claim: string, 
@@ -55,7 +143,7 @@ export class VerificationManager {
     confidence: number = 0.5,
     evidence?: string,
     counterExample?: string
-  ): VerificationStep {
+  ): Promise<VerificationStep> {
     const chain = this.getChain(chainId);
     if (!chain) {
       throw new Error(`Chain ${chainId} not found`);
@@ -75,10 +163,13 @@ export class VerificationManager {
     chain.steps.push(step);
     this.updateChainStatus(chainId);
     
+    // Save the updated data
+    await this.saveData();
+    
     return step;
   }
 
-  updateVerificationStep(
+  async updateVerificationStep(
     chainId: string,
     stepId: string,
     verification: string,
@@ -86,7 +177,7 @@ export class VerificationManager {
     confidence: number,
     evidence?: string,
     counterExample?: string
-  ): VerificationStep {
+  ): Promise<VerificationStep> {
     const chain = this.getChain(chainId);
     if (!chain) {
       throw new Error(`Chain ${chainId} not found`);
@@ -110,6 +201,9 @@ export class VerificationManager {
     }
     
     this.updateChainStatus(chainId);
+    
+    // Save the updated data
+    await this.saveData();
     
     return step;
   }

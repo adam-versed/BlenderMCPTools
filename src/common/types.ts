@@ -14,9 +14,9 @@ export interface ChatOutputFormatting {
 export interface ThinkingTool {
   name: string;
   description: string;
-  processThought(input: unknown, context: ThinkingContext): ThinkingResponse;
+  processThought(input: unknown, context: ThinkingContext): Promise<ThinkingResponse>;
   formatForIDEChat(input: unknown, context: ThinkingContext): string;
-  handleCommand(command: any, context: ThinkingContext): ThinkingResponse;
+  handleCommand(command: any, context: ThinkingContext): Promise<ThinkingResponse>;
 }
 
 export interface ThinkingResponse {

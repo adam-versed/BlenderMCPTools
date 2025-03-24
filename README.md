@@ -9,6 +9,13 @@ A unified MCP server for multiple structured thinking tools that help Claude org
 
 Structured Thinking provides a collection of complementary thinking tools that help Claude break down complex problems and verify its reasoning. Each tool serves a different purpose but shares a common interface and can be used together.
 
+## Features
+
+- **Persistent Data Storage**: Templates, sessions, and verification chains are automatically saved to disk and loaded when the server restarts
+- **Predefined Templates**: Includes templates for analysis, debugging, decision making, and more
+- **Custom Templates**: Create your own templates for domain-specific thinking patterns
+- **Structured Verification**: Systematically verify claims with confidence tracking
+
 ## Tools Included
 
 ### Template Thinking
@@ -60,6 +67,18 @@ Add to your `claude_desktop_config.json`:
   ]
 }
 ```
+
+## Persistence
+
+Structured thinking tools now maintain persistence between sessions:
+
+- **Storage Location**: Data is saved in `~/.structured-thinking/` directory in your home folder
+- **What's Saved**: 
+  - Custom templates (including usage statistics for built-in templates)
+  - Active sessions with their progress
+  - Verification chains and steps
+- **Auto-save**: Data is automatically saved after each operation
+- **Auto-load**: Data is loaded when the server starts
 
 ## Usage Tips
 
@@ -139,4 +158,4 @@ claude.verificationThinking({
 
 ## Credits
 
-Based on the sequential-thinking tool by the Model Context Protocol. Enhanced with structured thinking tools and IDE chat output formatting.
+Based on the sequential-thinking tool by the Model Context Protocol. Enhanced with structured thinking tools, persistence, and IDE chat output formatting.
