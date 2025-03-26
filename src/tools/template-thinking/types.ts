@@ -56,5 +56,8 @@ export interface TemplateThinkingInput {
     type: string;
     templateId?: string;
     sessionId?: string;
+    problemDescription?: string;
+    wasAccepted?: boolean;
+    limit?: number;
   };
 }

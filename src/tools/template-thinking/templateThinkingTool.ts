@@ -1,6 +1,7 @@
 import { TemplateManager } from './templateManager.js';
-import { TemplateThinkingInput } from './types.js';
+import { TemplateThinkingInput, ThinkingTemplate } from './types.js';
 import { ThinkingContext, ThinkingResponse, ThinkingTool } from '../../common/types.js';
+import { TemplateRecommenderService } from './recommender/templateRecommenderService.js';
 import chalk from 'chalk';
 
 export class TemplateThinkingTool implements ThinkingTool {
@@ -17,9 +18,15 @@ The system includes templates for:
 - Analysis of complex problems
 - Decision making with multiple criteria
 - Debugging and problem-solving
-- Planning and implementation`;
+- Planning and implementation
+
+Advanced features:
+- Auto-selection of templates based on context
+- Recommendations for optimal thinking approaches
+- Learning from usage patterns`;
 
   private templateManager = new TemplateManager();
+  private recommenderService = new TemplateRecommenderService();
 
   async processThought(input: unknown, context: ThinkingContext): Promise<ThinkingResponse> {
     try {
@@ -110,7 +117,14 @@ The system includes templates for:
     return 'Error: Invalid input for formatForIDEChat';
   }
 
-  async handleCommand(command: { type: string; templateId?: string; sessionId?: string }, context: ThinkingContext): Promise<ThinkingResponse> {
+  async handleCommand(command: { 
+    type: string; 
+    templateId?: string; 
+    sessionId?: string;
+    problemDescription?: string;
+    wasAccepted?: boolean;
+    limit?: number;
+  }, context: ThinkingContext): Promise<ThinkingResponse> {
     try {
       switch (command.type) {
         case 'list-templates': {
@@ -175,6 +189,185 @@ The system includes templates for:
             content: [{
               type: "text",
               text: formattedOutput
+            }]
+          };
+        }
+        
+        case 'recommend-template': {
+          if (!command.problemDescription) {
+            throw new Error('problemDescription required for recommend-template command');
+          }
+          
+          const limit = command.limit || 3;
+          const templates = this.templateManager.getAllTemplates();
+          
+          const { recommendations, analysis, alternativeCategories } = 
+            this.recommenderService.getTemplateRecommendations(
+              command.problemDescription,
+              context,
+              templates,
+              limit
+            );
+          
+          if (recommendations.length === 0) {
+            return {
+              content: [{
+                type: "text",
+                text: "No templates matched your request."
+              }]
+            };
+          }
+          
+          // Format the recommendations
+          let output = `# Template Recommendations\n\n`;
+          output += `Based on your request: "${command.problemDescription}"\n\n`;
+          
+          // Include confidence and problem categorization 
+          output += `**Context Analysis**:\n`;
+          output += `- Problem type: ${analysis.problemType}\n`;
+          output += `- Recommended category: ${analysis.category}\n`;
+          output += `- Complexity: ${analysis.complexity}\n`;
+          output += `- Confidence: ${Math.round(analysis.confidence * 100)}%\n\n`;
+          
+          // Format recommendations
+          output += `## Top ${recommendations.length} Recommendations\n\n`;
+          
+          recommendations.forEach((recommendation, index) => {
+            const template = recommendation.template;
+            output += `### ${index + 1}. ${template.name} (${template.category})\n`;
+            output += `${template.description}\n\n`;
+            output += `**Why this template?** ${recommendation.reason}\n\n`;
+            
+            // First few steps as preview
+            output += `First steps:\n`;
+            template.steps.slice(0, 3).forEach(step => {
+              output += `- ${step.content}\n`;
+            });
+            
+            if (template.steps.length > 3) {
+              output += `- ... plus ${template.steps.length - 3} more steps\n`;
+            }
+            
+            output += `\nUse template ID: \`${template.id}\`\n\n`;
+          });
+          
+          // Alternative categories
+          if (alternativeCategories.length > 0) {
+            output += `## Alternative Approaches\n\n`;
+            output += `You might also consider templates from these categories:\n`;
+            alternativeCategories.forEach(category => {
+              output += `- ${category} templates\n`;
+            });
+          }
+          
+          return {
+            content: [{
+              type: "text",
+              text: output
+            }]
+          };
+        }
+        
+        case 'auto-select-template': {
+          if (!command.problemDescription) {
+            throw new Error('problemDescription required for auto-select-template command');
+          }
+          
+          const templates = this.templateManager.getAllTemplates();
+          const { recommendation, analysis } = this.recommenderService.autoSelectTemplate(
+            command.problemDescription,
+            context,
+            templates
+          );
+          
+          if (!recommendation) {
+            return {
+              content: [{
+                type: "text",
+                text: "Could not automatically select a template for your request."
+              }]
+            };
+          }
+          
+          // Auto-create a session with the selected template
+          const session = await this.templateManager.createSession(recommendation.template.id);
+          
+          // Format output
+          let output = `# Template Auto-Selected\n\n`;
+          output += `Based on your request: "${command.problemDescription}"\n\n`;
+          output += `Selected: **${recommendation.template.name}** (${recommendation.template.category})\n\n`;
+          output += `**Why this template?** ${recommendation.reason}\n\n`;
+          output += `Session created with ID: ${session.id}\n\n`;
+          output += `---\n\n`;
+          
+          const formattedOutput = this.templateManager.formatForIDEChat(session, context);
+          output += formattedOutput;
+          
+          // Record this as an accepted recommendation
+          this.recommenderService.recordRecommendationOutcome(
+            recommendation.template,
+            command.problemDescription,
+            true
+          );
+          
+          return {
+            content: [{
+              type: "text",
+              text: output
+            }]
+          };
+        }
+        
+        case 'record-template-selection': {
+          if (!command.templateId || !command.problemDescription) {
+            throw new Error('templateId and problemDescription required for record-template-selection');
+          }
+          
+          const template = this.templateManager.getTemplateById(command.templateId);
+          if (!template) {
+            throw new Error(`Template ${command.templateId} not found`);
+          }
+          
+          const wasAccepted = command.wasAccepted !== false; // Default to true
+          
+          const stats = this.recommenderService.recordRecommendationOutcome(
+            template,
+            command.problemDescription,
+            wasAccepted
+          );
+          
+          return {
+            content: [{
+              type: "text",
+              text: `Template selection recorded. Current acceptance rate: ${Math.round(stats.acceptanceRate * 100)}%`
+            }]
+          };
+        }
+        
+        case 'template-effectiveness': {
+          const metrics = this.recommenderService.getEffectivenessMetrics();
+          
+          let output = `# Template Effectiveness Metrics\n\n`;
+          output += `Overall acceptance rate: ${Math.round(metrics.overallAcceptanceRate * 100)}%\n\n`;
+          
+          output += `## Category Statistics\n\n`;
+          for (const [category, stats] of Object.entries(metrics.categoryStats)) {
+            output += `### ${category}\n`;
+            output += `- Acceptance rate: ${Math.round(stats.acceptanceRate * 100)}%\n`;
+            output += `- Recommendation count: ${stats.recommendationCount}\n`;
+            output += `- Average score: ${stats.averageScore.toFixed(2)}\n\n`;
+          }
+          
+          output += `## Recent Trends\n\n`;
+          const trend = metrics.recentTrends.improving ? 'Improving' : 'Declining';
+          output += `- Trend: ${trend}\n`;
+          output += `- Recent acceptance rate: ${Math.round(metrics.recentTrends.recentAcceptanceRate * 100)}%\n`;
+          output += `- Historical acceptance rate: ${Math.round(metrics.recentTrends.historicalAcceptanceRate * 100)}%\n`;
+          
+          return {
+            content: [{
+              type: "text",
+              text: output
             }]
           };
         }
