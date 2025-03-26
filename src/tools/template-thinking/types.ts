@@ -15,6 +15,11 @@ export interface ThinkingStep {
   notes?: string;
 }
 
+export interface TemplateArtifact {
+  description: string;
+  template: string;
+}
+
 export interface ThinkingTemplate {
   id: string;
   name: string;
@@ -25,6 +30,7 @@ export interface ThinkingTemplate {
   lastUsed?: Date;
   usageCount: number;
   isBuiltIn: boolean;
+  artifacts?: Record<string, TemplateArtifact>;
 }
 
 export interface TemplateSession {

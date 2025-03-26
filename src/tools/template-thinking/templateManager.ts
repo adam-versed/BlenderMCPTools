@@ -7,6 +7,7 @@ import {
 } from './types.js';
 import { ThinkingContext } from '../../common/types.js';
 import { PersistenceManager, TemplateData } from '../../common/persistence/index.js';
+import { builtInTemplates } from './templates/index.js';
 
 export class TemplateManager {
   private templates: Map<string, ThinkingTemplate> = new Map();
@@ -318,7 +319,9 @@ export class TemplateManager {
       createdAt: new Date(),
       usageCount: 0,
       isBuiltIn: true
-    }
+    },
+    // Include imported templates 
+    ...builtInTemplates
   ];
 
   constructor() {

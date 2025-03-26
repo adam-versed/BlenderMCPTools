@@ -1,5 +1,5 @@
 import { TemplateManager } from './templateManager.js';
-import { TemplateThinkingInput, ThinkingTemplate } from './types.js';
+import { TemplateThinkingInput, ThinkingTemplate, TemplateSession } from './types.js';
 import { ThinkingContext, ThinkingResponse, ThinkingTool } from '../../common/types.js';
 import { TemplateRecommenderService } from './recommender/templateRecommenderService.js';
 import chalk from 'chalk';
@@ -19,11 +19,13 @@ The system includes templates for:
 - Decision making with multiple criteria
 - Debugging and problem-solving
 - Planning and implementation
+- Solution architecture planning
 
 Advanced features:
 - Auto-selection of templates based on context
 - Recommendations for optimal thinking approaches
-- Learning from usage patterns`;
+- Learning from usage patterns
+- Generation of standardized documentation artifacts`;
 
   private templateManager = new TemplateManager();
   private recommenderService = new TemplateRecommenderService();
@@ -56,7 +58,7 @@ Advanced features:
       if (templateInput.templateId && !templateInput.sessionId) {
         const session = await this.templateManager.createSession(templateInput.templateId);
         
-        const formattedOutput = this.templateManager.formatForIDEChat(session, context);
+        const formattedOutput = this.formatSessionOutput(session, context);
         console.error(formattedOutput);
         
         return {
@@ -76,7 +78,7 @@ Advanced features:
         );
         
         const session = this.templateManager.getSession(templateInput.sessionId)!;
-        const formattedOutput = this.templateManager.formatForIDEChat(session, context);
+        const formattedOutput = this.formatSessionOutput(session, context);
         console.error(formattedOutput);
         
         return {
@@ -111,10 +113,86 @@ Advanced features:
       if (!session) {
         return `Error: Session ${sessionId} not found`;
       }
-      return this.templateManager.formatForIDEChat(session, context);
+      return this.formatSessionOutput(session, context);
     }
     
     return 'Error: Invalid input for formatForIDEChat';
+  }
+
+  private formatSessionOutput(session: TemplateSession, context: ThinkingContext): string {
+    const template = this.templateManager.getTemplateById(session.templateId);
+    if (!template) {
+      return 'Error: Template not found';
+    }
+    
+    // Create a header with formatting for the template
+    let output = `📋 ${template.name.toUpperCase()} `;
+    
+    // Calculate progress
+    const completedSteps = session.steps.filter(s => s.isComplete).length;
+    const totalSteps = session.steps.length;
+    
+    // If all steps are complete
+    if (completedSteps === totalSteps) {
+      output += `(Completed)\n`;
+      
+      // List all completed steps
+      session.steps.forEach((step, index) => {
+        output += `✓ Step ${index + 1}: ${step.content}\n`;
+      });
+      
+      // Add artifact templates if available and this is the final step
+      if (template.artifacts && Object.keys(template.artifacts).length > 0) {
+        output += `\n📄 Generated Artifacts:\n`;
+        
+        for (const [filename, artifact] of Object.entries(template.artifacts)) {
+          output += `\n### ${filename}\n`;
+          output += `${artifact.description}\n\n`;
+          // We don't include the full template here as it would be too verbose
+          output += `Template available for implementation.\n`;
+        }
+      }
+      
+      output += `\n`;
+    } else {
+      // Show progress
+      output += `(Step ${completedSteps + 1} of ${totalSteps})\n`;
+      
+      // List completed steps
+      session.steps
+        .filter(s => s.isComplete)
+        .forEach((step, index) => {
+          output += `✓ Step ${session.steps.findIndex(s => s.id === step.id) + 1}: ${step.content}\n`;
+        });
+      
+      // Show current step
+      const currentStep = session.steps[session.currentStepIndex];
+      output += `→ Current step: ${currentStep.content}\n`;
+      
+      // If we're at the document creation steps (4 or 5), show artifact templates
+      if (template.artifacts && 
+          Object.keys(template.artifacts).length > 0 && 
+          (session.currentStepIndex === 3 || session.currentStepIndex === 4)) {
+        
+        // Filter artifacts based on which step we're on
+        const relevantArtifacts = Object.entries(template.artifacts).filter(([filename]) => {
+          if (session.currentStepIndex === 3) {
+            return filename === 'technical-approach.md';
+          } else if (session.currentStepIndex === 4) {
+            return filename === 'tasks.md';
+          }
+          return false;
+        });
+        
+        if (relevantArtifacts.length > 0) {
+          output += `\n📄 Document Template Available: ${relevantArtifacts[0][0]}\n`;
+        }
+      }
+      
+      output += `\n`;
+    }
+    
+    return output;
   }
 
   async handleCommand(command: { 
@@ -182,7 +260,7 @@ Advanced features:
             throw new Error(`Session ${command.sessionId} not found`);
           }
           
-          const formattedOutput = this.templateManager.formatForIDEChat(session, context);
+          const formattedOutput = this.formatSessionOutput(session, context);
           console.error(formattedOutput);
           
           return {
@@ -192,6 +270,60 @@ Advanced features:
             }]
           };
         }
+        
+        case 'get-artifact-template': {
+          if (!command.templateId) {
+            throw new Error('templateId required for get-artifact-template command');
+          }
+          
+          const template = this.templateManager.getTemplateById(command.templateId);
+          if (!template) {
+            throw new Error(`Template ${command.templateId} not found`);
+          }
+          
+          if (!template.artifacts || Object.keys(template.artifacts).length === 0) {
+            return {
+              content: [{
+                type: "text",
+                text: "No artifact templates available for this template."
+              }]
+            };
+          }
+          
+          // If no specific artifact is requested, list all available artifacts
+          if (!command.sessionId) {
+            const artifactList = Object.entries(template.artifacts).map(
+              ([filename, artifact]) => `• ${filename}: ${artifact.description}`
+            ).join('\n');
+            
+            return {
+              content: [{
+                type: "text",
+                text: `Available artifacts for ${template.name}:\n\n${artifactList}`
+              }]
+            };
+          }
+          
+          // Treat sessionId as artifact name in this case
+          const artifactName = command.sessionId;
+          const artifact = template.artifacts[artifactName];
+          
+          if (!artifact) {
+            return {
+              content: [{
+                type: "text",
+                text: `Artifact "${artifactName}" not found for template ${template.name}.`
+              }]
+            };
+          }
+          
+          return {
+            content: [{
+              type: "text",
+              text: `# ${artifactName}\n\n${artifact.description}\n\n\`\`\`markdown\n${artifact.template}\n\`\`\``
+            }]
+          };
+        },
         
         case 'recommend-template': {
           if (!command.problemDescription) {
@@ -300,7 +432,7 @@ Advanced features:
           output += `Session created with ID: ${session.id}\n\n`;
           output += `---\n\n`;
           
-          const formattedOutput = this.templateManager.formatForIDEChat(session, context);
+          const formattedOutput = this.formatSessionOutput(session, context);
           output += formattedOutput;
           
           // Record this as an accepted recommendation
