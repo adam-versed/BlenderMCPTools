@@ -637,11 +637,10 @@ Templates can be customized for specific domains:
 
 ### Learning & Adaptation
 
-The system continuously improves through usage data:
+The system has infrastructure to support continuous improvement (planned):
 
-- **Usage Tracking**: Records which templates are selected and completed
-- **Effectiveness Metrics**: Tracks template performance across different contexts
-- **Historical Analysis**: Identifies trends in template effectiveness
+- **Basic Usage Tracking**: Currently tracks basic template usage count
+- **Template Selection**: Uses available context to recommend appropriate templates
 
 ## Integration With MCP Clients
 
@@ -668,3 +667,6 @@ npm run build
 3. **Multi-Tool Thinking**: Combining multiple thinking approaches for complex problems
 4. **Visual Thinking Maps**: Graphical representation of thinking processes
 5. **Artifact Generation**: Standardized document generation capabilities for various domains
+6. **Advanced Usage Tracking**: Comprehensive metrics on template effectiveness
+7. **Effectiveness Metrics**: Detailed tracking of template performance across contexts
+8. **Historical Analysis**: Identifying trends and patterns in template effectiveness
