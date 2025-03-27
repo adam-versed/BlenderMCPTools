@@ -6,20 +6,16 @@ import chalk from 'chalk';
 
 export class TemplateThinkingTool implements ThinkingTool {
   public readonly name = 'template-thinking';
-  public readonly description = `A tool for structured thinking using templates.
+  public readonly description = `A tool for structured thinking using templates for Blender workflows.
   
 Each template:
 - Contains a sequence of thinking steps
 - Guides through a specific cognitive process
-- Can be customized for different domains
+- Can be customized for different Blender tasks
 - Helps ensure thorough consideration
 
 The system includes templates for:
-- Analysis of complex problems
-- Decision making with multiple criteria
-- Debugging and problem-solving
-- Planning and implementation
-- Solution architecture planning
+- Image2Blender: Converting reference images to 3D scenes
 
 Advanced features:
 - Auto-selection of templates based on context
