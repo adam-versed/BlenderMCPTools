@@ -1,6 +1,5 @@
 import { ThinkingTool, ThinkingStyle } from './types.js';
 import { TemplateThinkingTool } from '../tools/template-thinking/templateThinkingTool.js';
-import { VerificationThinkingTool } from '../tools/verification-thinking/verificationThinkingTool.js';
 
 /**
  * Registry for all thinking tools
@@ -11,7 +10,6 @@ export class ToolRegistry {
   constructor() {
     // Register all tools
     this.registerTool(new TemplateThinkingTool());
-    this.registerTool(new VerificationThinkingTool());
   }
   
   registerTool(tool: ThinkingTool): void {
@@ -45,15 +43,6 @@ export class ToolRegistry {
       (inputData.command && ['list-templates', 'show-template', 'continue-session'].includes(inputData.command.type))
     ) {
       return this.getTool('template-thinking');
-    }
-    
-    // Check for verification thinking input patterns
-    if (
-      inputData.subject || 
-      (inputData.chainId && (inputData.claim || inputData.stepId)) ||
-      (inputData.command && ['list-chains', 'show-chain'].includes(inputData.command.type))
-    ) {
-      return this.getTool('verification-thinking');
     }
     
     // Default to template thinking

@@ -142,33 +142,7 @@ class StructuredThinkingServer {
           };
           break;
           
-        case 'verification-thinking':
-          inputSchema = {
-            type: "object",
-            properties: {
-              subject: { type: "string", description: "Subject of the verification chain" },
-              chainId: { type: "string", description: "ID of an existing chain" },
-              stepId: { type: "string", description: "ID of the step to update" },
-              claim: { type: "string", description: "Claim to verify" },
-              type: { type: "string", description: "Type of verification" },
-              verification: { type: "string", description: "Verification text" },
-              evidence: { type: "string", description: "Optional: Evidence supporting the verification" },
-              counterExample: { type: "string", description: "Optional: Counter-example to the claim" },
-              command: {
-                type: "object",
-                properties: {
-                  type: { 
-                    type: "string",
-                    enum: ["list-chains", "show-chain"],
-                    description: "Command type"
-                  },
-                  chainId: { type: "string", description: "Chain ID for commands that require it" }
-                },
-                required: ["type"]
-              }
-            }
-          };
-          break;
+        // Only template-thinking is supported
       }
       
       return {
